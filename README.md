@@ -27,6 +27,11 @@ Bagikan alamat itu. Orang lain tinggal membukanya dan menginstal. Tiap pengguna 
 ## Jadi file APK (opsional)
 Buka https://www.pwabuilder.com, masukkan alamat GitHub Pages-mu, lalu pilih paket Android. Hasilnya bisa diunggah ke GitHub Releases supaya orang bisa mengunduh APK.
 
+## Fitur PWA
+- **Pintasan ikon aplikasi:** tekan lama ikon di Android (atau klik kanan di PC) untuk "Tambah pengeluaran", "Ringkasan bulan ini", dan "Foto struk" (langsung membuka kamera).
+- **Screenshot di dialog instal:** `screenshots/narrow.png` dan `wide.png` adalah ilustrasi dengan data contoh. Ganti dengan tangkapan layar asli sebelum dipublikasikan.
+- **IARC rating:** `iarc_rating_id` sengaja tidak diisi. Kodenya harus dari kuesioner IARC (gratis, lewat Google Play Console). Isi di `manifest.webmanifest` kalau mau terbit di Play Store.
+
 ## Batasan
 - Notifikasi saat aplikasi tertutup memakai Periodic Background Sync. Hanya Chrome/Edge yang mendukung, aplikasi harus sudah terinstal, dan Chrome yang menentukan jam pengecekan, jadi bisa telat. iOS Safari tidak mendukungnya.
 - Data tidak tersinkron antar perangkat. Pakai ekspor/impor JSON untuk memindahkan data.

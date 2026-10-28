@@ -1,6 +1,6 @@
 importScripts('db.js');
-const V='catatuang-v1';
-const FILES=['./','index.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png',
+const V='catatuang-v2';
+const FILES=['./','index.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','screenshots/narrow.png','screenshots/wide.png',
 'lib/tesseract.min.js','lib/worker.min.js','lib/tesseract-core-simd-lstm.wasm.js','lib/tesseract-core-lstm.wasm.js',
 'lib/lang/ind.traineddata.gz','lib/lang/eng.traineddata.gz'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});

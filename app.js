@@ -132,7 +132,10 @@ async function init(){
  try{S=await DB.get('state')||S;NOTIF=await DB.get('notified')||'';
   if(!S.tx.length&&!S.inc.length){try{const old=JSON.parse(localStorage.getItem('catatuang'));if(old&&old.tx){S=old;await save()}}catch(e){}}
  }catch(e){alert('Database tidak bisa dibuka. Data tidak akan tersimpan (mode privat?).')}
+ const q=new URLSearchParams(location.search),t=q.get('tab');
+ if(['home','add','month','set'].includes(t))tab=t;
  render();
+ if(q.get('scan')==='1')setTimeout(()=>{const f=document.getElementById('f');if(f)f.click()},300);
  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(()=>{if(Notification.permission==='granted')bgSync()}).catch(()=>{})}
 }
