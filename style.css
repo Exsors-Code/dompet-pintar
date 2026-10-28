@@ -1,0 +1,29 @@
+:root{--bg:#eef2f1;--card:#fff;--ink:#14232a;--mute:#5d6f75;--line:#d5dfdd;--acc:#0f766e;--out:#b3412e;--inn:#0f766e}
+@media(prefers-color-scheme:dark){:root{--bg:#10191c;--card:#18252a;--ink:#e8f0ef;--mute:#8fa3a8;--line:#2a3b41;--acc:#3fbfb2;--out:#f08a75;--inn:#3fbfb2}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,Segoe UI,Roboto,sans-serif;padding-bottom:84px}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1,h2,.big{font-weight:700;font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0}
+h2{font-size:18px;margin:20px 0 8px}
+.big{font-size:40px;font-weight:700;letter-spacing:-1px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.mute{color:var(--mute);font-size:14px}
+.out{color:var(--out)}.inn{color:var(--inn)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.row img{width:40px;height:40px;object-fit:cover;border-radius:8px}
+.grow{flex:1;min-width:0}.grow b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
+nav button{flex:1;padding:14px 4px;background:none;border:0;color:var(--mute);font:600 14px system-ui,sans-serif;cursor:pointer}
+nav button.on{color:var(--acc);box-shadow:inset 0 3px var(--acc)}
+input,select,button.b{font:inherit;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);margin:4px 0 10px}
+button.b{background:var(--acc);color:#fff;border:0;font-weight:600;cursor:pointer}
+button.b.alt{background:none;color:var(--acc);border:1px solid var(--acc)}
+button.x{background:none;border:0;color:var(--mute);font-size:20px;cursor:pointer}
+label{font-size:14px;color:var(--mute)}
+.bar{height:8px;border-radius:4px;background:var(--line);margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--out)}
+.banner{background:var(--acc);color:#fff;border-radius:14px;padding:14px;margin:10px 0}
+.hide{display:none}
+.scan{border:2px dashed var(--acc);border-radius:14px;padding:16px;text-align:center;cursor:pointer;display:block;color:var(--acc);font-weight:600;margin-bottom:10px}
+#prev{max-width:100%;max-height:160px;border-radius:10px;margin-bottom:8px}
