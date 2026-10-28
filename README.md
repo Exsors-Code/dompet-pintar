@@ -49,6 +49,9 @@ Buka https://www.pwabuilder.com, masukkan alamat GitHub Pages-mu, lalu pilih pak
 3. Pakai Play App Signing, lalu tambahkan sidik jari SHA-256 dari Play Console ke `assetlinks.json`.
 4. Isi `iarc_rating_id` dan alamat kebijakan privasi (`privacy.html`) di Play Console.
 
+## Update aplikasi
+Service worker memakai cache lebih dulu. Setiap kali kamu mengubah file, naikkan nomor versi `V` di `sw.js` (mis. `catatuang-v6`) supaya pengguna menerima versi baru.
+
 ## Batasan
 - Notifikasi saat aplikasi tertutup memakai Periodic Background Sync. Hanya Chrome/Edge yang mendukung, aplikasi harus sudah terinstal, dan Chrome yang menentukan jam pengecekan, jadi bisa telat. iOS Safari tidak mendukungnya.
 - Data tidak tersinkron antar perangkat. Pakai ekspor/impor JSON untuk memindahkan data.

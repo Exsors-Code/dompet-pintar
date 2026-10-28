@@ -1,16 +1,28 @@
 importScripts('db.js');
-const V='catatuang-v4';
-const FILES=['./','index.html','privacy.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','screenshots/narrow.png','screenshots/widget.png','widgets/today-template.json','widgets/today-data.json','screenshots/wide.png',
-'lib/tesseract.min.js','lib/worker.min.js','lib/tesseract-core-simd-lstm.wasm.js','lib/tesseract-core-lstm.wasm.js',
-'lib/lang/ind.traineddata.gz','lib/lang/eng.traineddata.gz'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(FILES.map(f=>c.add(f).catch(()=>{})))).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+const V='catatuang-v5';
+const CORE=['./','index.html','privacy.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png',
+'screenshots/narrow.png','screenshots/wide.png','screenshots/widget.png','widgets/today-template.json','widgets/today-data.json'];
+const LIB=['lib/tesseract.min.js','lib/worker.min.js','lib/tesseract-core-simd-lstm.wasm.js','lib/tesseract-core-lstm.wasm.js','lib/lang/ind.traineddata.gz','lib/lang/eng.traineddata.gz'];
+self.addEventListener('install',e=>{e.waitUntil((async()=>{
+ const c=await caches.open(V);
+ try{await c.addAll(CORE)}catch(x){await Promise.all(CORE.map(f=>c.add(f).catch(()=>{})))}
+ await Promise.all(LIB.map(f=>c.add(f).catch(()=>{})));
+ await self.skipWaiting()})())});
+self.addEventListener('activate',e=>{e.waitUntil((async()=>{
+ for(const k of await caches.keys())if(k!==V&&k!=='share')await caches.delete(k);
+ await self.clients.claim()})())});
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);
  if(e.request.method==='POST'&&u.pathname.endsWith('/share-receipt')){
   e.respondWith((async()=>{try{const f=(await e.request.formData()).get('receipt');if(f)await (await caches.open('share')).put('shared-receipt',new Response(f))}catch(x){}
    return Response.redirect(new URL('./?tab=add&shared=1',self.registration.scope).href,303)})());return}
  if(e.request.method!=='GET')return;
- e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(r=>r||fetch(e.request)))});
+ e.respondWith((async()=>{
+  const c=await caches.open(V),hit=await c.match(e.request,{ignoreSearch:true});
+  if(hit)return hit;
+  try{const res=await fetch(e.request);if(res.status===200&&u.origin===location.origin)c.put(e.request,res.clone());return res}
+  catch(x){if(e.request.mode==='navigate'){const f=(await c.match('index.html'))||(await c.match('./'));if(f)return f}
+   return new Response('Offline',{status:503})}
+ })())});
 const rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
 const ymd=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 async function daily(){
