@@ -13,8 +13,10 @@
 <script src="lib/tesseract.min.js"></script>
 </head>
 <body>
+<div id="drag"></div>
 <main id="app"></main>
 <nav id="nav"></nav>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});</script>
 <script src="db.js"></script>
 <script src="app.js"></script>
 </body>

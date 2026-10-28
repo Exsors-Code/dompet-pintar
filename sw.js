@@ -1,9 +1,9 @@
 importScripts('db.js');
-const V='catatuang-v3';
-const FILES=['./','index.html','privacy.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','screenshots/narrow.png','screenshots/wide.png',
+const V='catatuang-v4';
+const FILES=['./','index.html','privacy.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','screenshots/narrow.png','screenshots/widget.png','widgets/today-template.json','widgets/today-data.json','screenshots/wide.png',
 'lib/tesseract.min.js','lib/worker.min.js','lib/tesseract-core-simd-lstm.wasm.js','lib/tesseract-core-lstm.wasm.js',
 'lib/lang/ind.traineddata.gz','lib/lang/eng.traineddata.gz'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
+self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(FILES.map(f=>c.add(f).catch(()=>{})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);
  if(e.request.method==='POST'&&u.pathname.endsWith('/share-receipt')){
@@ -22,6 +22,21 @@ async function daily(){
  await self.registration.showNotification('CatatUang: ringkasan hari ini',{body,icon:'icons/icon-192.png',tag:'daily'});
  await DB.put('notified',t);
 }
-self.addEventListener('periodicsync',e=>{if(e.tag==='daily-summary')e.waitUntil(daily())});
+self.addEventListener('periodicsync',e=>{if(e.tag==='daily-summary')e.waitUntil(Promise.all([daily(),updateWidgets()]))});
+self.addEventListener('sync',e=>{if(e.tag==='daily-summary')e.waitUntil(daily())});
+self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch(x){}
+ e.waitUntil(self.registration.showNotification(d.title||'CatatUang',{body:d.body||'Jangan lupa catat pengeluaranmu hari ini.',icon:'icons/icon-192.png'}))});
+async function updateWidgets(){
+ if(!self.widgets)return;
+ const S=(await DB.get('state'))||{tx:[]},t=ymd(),l=(S.tx||[]).filter(x=>x.d===t),by={};
+ l.forEach(x=>by[x.cat]=(by[x.cat]||0)+x.amt);
+ const data={total:rp(l.reduce((a,x)=>a+x.amt,0)),detail:l.length?Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([c,v])=>c+' '+rp(v)).join(' · '):'Belum ada pengeluaran'};
+ const tpl=await (await fetch('widgets/today-template.json')).text();
+ await self.widgets.updateByTag('today',{template:tpl,data:JSON.stringify(data)});
+}
+self.addEventListener('widgetinstall',e=>e.waitUntil(updateWidgets()));
+self.addEventListener('widgetresume',e=>e.waitUntil(updateWidgets()));
+self.addEventListener('widgetclick',e=>e.waitUntil(clients.openWindow('./?tab=add')));
+self.addEventListener('message',e=>{if(e.data==='widgets')e.waitUntil(updateWidgets())});
 self.addEventListener('notificationclick',e=>{e.notification.close();
  e.waitUntil(clients.matchAll({type:'window'}).then(l=>l.length?l[0].focus():clients.openWindow('./')))});

@@ -27,3 +27,8 @@ label{font-size:14px;color:var(--mute)}
 .hide{display:none}
 .scan{border:2px dashed var(--acc);border-radius:14px;padding:16px;text-align:center;cursor:pointer;display:block;color:var(--acc);font-weight:600;margin-bottom:10px}
 #prev{max-width:100%;max-height:160px;border-radius:10px;margin-bottom:8px}
+#drag{display:none}
+@media(display-mode:window-controls-overlay){
+ #drag{display:block;position:fixed;top:0;left:env(titlebar-area-x,0);width:env(titlebar-area-width,100%);height:env(titlebar-area-height,0);app-region:drag;-webkit-app-region:drag;z-index:5}
+ main{padding-top:calc(env(titlebar-area-height,0px) + 16px)}
+}

@@ -8,7 +8,7 @@ const rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let S={tx:[],inc:[],set:{time:'21:00'}},NOTIF='';
-const save=()=>DB.put('state',S).catch(()=>alert('Gagal menyimpan ke database. Ekspor cadangan dan coba lagi.'));
+const save=()=>DB.put('state',S).then(()=>{try{navigator.serviceWorker.controller.postMessage('widgets')}catch(e){}}).catch(()=>alert('Gagal menyimpan ke database. Ekspor cadangan dan coba lagi.'));
 let tab='home',draft={img:null,amt:'',note:'',cat:'Makan'},ocrMsg='',viewMonth=today().slice(0,7);
 
 function sumDay(d){const l=S.tx.filter(t=>t.d===d),by={};l.forEach(t=>by[t.cat]=(by[t.cat]||0)+t.amt);
@@ -151,10 +151,12 @@ async function init(){
  }catch(e){alert('Database tidak bisa dibuka. Data tidak akan tersimpan (mode privat?).')}
  const q=new URLSearchParams(location.search),t=q.get('tab');
  if(['home','add','month','set'].includes(t))tab=t;
+ const pq=q.get('q');if(pq){try{const p=new URLSearchParams((pq.split('?')[1]||''));if(p.get('amt'))draft.amt=p.get('amt');if(p.get('note'))draft.note=p.get('note');if(CATS[p.get('cat')])draft.cat=p.get('cat');tab='add'}catch(e){}}
  render();
  if(q.get('scan')==='1')setTimeout(()=>{const f=document.getElementById('f');if(f)f.click()},300);
  if(q.get('shared')==='1'&&window.caches){try{const c=await caches.open('share'),r=await c.match('shared-receipt');if(r){await c.delete('shared-receipt');scan(await r.blob())}}catch(e){}}
  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
- if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(()=>{if(Notification.permission==='granted')bgSync()}).catch(()=>{})}
+ if('serviceWorker' in navigator&&window.Notification&&Notification.permission==='granted')bgSync();
+ if(window.launchQueue)launchQueue.setConsumer(async p=>{for(const h of p.files||[]){if(confirm('Pulihkan cadangan dari file ini? Data saat ini akan diganti.'))importJson(await h.getFile())}});
 }
 init();

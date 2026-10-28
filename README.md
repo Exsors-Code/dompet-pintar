@@ -32,6 +32,17 @@ Buka https://www.pwabuilder.com, masukkan alamat GitHub Pages-mu, lalu pilih pak
 - **Screenshot di dialog instal:** `screenshots/narrow.png` dan `wide.png` adalah ilustrasi dengan data contoh. Ganti dengan tangkapan layar asli sebelum dipublikasikan.
 - **IARC rating:** `iarc_rating_id` sengaja tidak diisi. Kodenya harus dari kuesioner IARC (gratis, lewat Google Play Console). Isi di `manifest.webmanifest` kalau mau terbit di Play Store.
 
+## Kemampuan PWA yang aktif
+- **Pintasan** (tekan lama ikon) dan **bagikan foto struk** ke aplikasi
+- **File handler:** buka file cadangan `.json` langsung dengan CatatUang
+- **Protocol handler:** tautan `web+catatuang:add?amt=25000&note=kopi&cat=Makan` membuka form yang sudah terisi
+- **Launch handler:** membuka jendela yang sudah ada, bukan jendela baru
+- **Widget Windows 11:** total pengeluaran hari ini
+- **Window Controls Overlay, tabbed display, edge side panel, note taking:** tampilan desktop
+- **Service worker:** offline, periodic sync, background sync, push (handler siap, belum ada server push)
+- `.well-known/assetlinks.json` dan `.well-known/web-app-origin-association` memakai domain `exsors-code.github.io`. Ganti kalau domainmu berbeda.
+- `iarc_rating_id` belum diisi karena harus berupa kode sertifikat IARC asli.
+
 ## Terbit ke Play Store
 1. Hosting harus di domain root (mis. `USERNAME.github.io`) agar `/.well-known/assetlinks.json` bisa diakses. Repo project di `/NAMA-REPO/` tidak cukup.
 2. Jangan commit `signing.keystore` atau `signing-key-info.txt` ke GitHub (sudah ada di `.gitignore`).

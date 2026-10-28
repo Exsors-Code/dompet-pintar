@@ -9,6 +9,8 @@
  "scope": "./",
  "display": "standalone",
  "display_override": [
+  "window-controls-overlay",
+  "tabbed",
   "standalone",
   "minimal-ui"
  ],
@@ -20,7 +22,12 @@
   "productivity",
   "utilities"
  ],
- "scope_extensions": [],
+ "scope_extensions": [
+  {
+   "type": "origin",
+   "origin": "https://exsors-code.github.io"
+  }
+ ],
  "icons": [
   {
    "src": "icons/icon-192.png",
@@ -112,5 +119,74 @@
     }
    ]
   }
- }
+ },
+ "tab_strip": {
+  "home_tab": "auto",
+  "new_tab_button": {
+   "url": "./?tab=add"
+  }
+ },
+ "file_handlers": [
+  {
+   "action": "./?import=1",
+   "name": "Cadangan CatatUang",
+   "accept": {
+    "application/json": [
+     ".json"
+    ]
+   }
+  }
+ ],
+ "launch_handler": {
+  "client_mode": [
+   "navigate-existing",
+   "auto"
+  ]
+ },
+ "protocol_handlers": [
+  {
+   "protocol": "web+catatuang",
+   "url": "./?tab=add&q=%s"
+  }
+ ],
+ "related_applications": [
+  {
+   "platform": "play",
+   "id": "io.github.exsors_code.twa",
+   "url": "https://play.google.com/store/apps/details?id=io.github.exsors_code.twa"
+  }
+ ],
+ "prefer_related_applications": false,
+ "edge_side_panel": {
+  "preferred_width": 400
+ },
+ "note_taking": {
+  "new_note_url": "./?tab=add"
+ },
+ "widgets": [
+  {
+   "name": "Pengeluaran hari ini",
+   "short_name": "Hari ini",
+   "description": "Total pengeluaranmu hari ini dan rinciannya.",
+   "tag": "today",
+   "ms_ac_template": "widgets/today-template.json",
+   "data": "widgets/today-data.json",
+   "type": "application/json",
+   "auth": false,
+   "update": 3600,
+   "icons": [
+    {
+     "src": "icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ],
+   "screenshots": [
+    {
+     "src": "screenshots/widget.png",
+     "sizes": "400x400",
+     "label": "Widget pengeluaran hari ini"
+    }
+   ]
+  }
+ ]
 }
