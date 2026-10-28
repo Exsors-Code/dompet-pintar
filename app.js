@@ -23,7 +23,7 @@ function render(){
 }
 function go(t){tab=t;render();window.scrollTo(0,0)}
 
-function txRow(t){return`<div class="row">${t.img?`<img src="${t.img}" alt="Struk">`:''}<div class="grow"><b>${esc(t.note||t.cat)}</b><span class="mute">${t.cat}${t.d!==today()?' · '+t.d:''}</span></div><b class="out">${rp(t.amt)}</b><button class="x" onclick="del(${t.id})" aria-label="Hapus">×</button></div>`}
+function txRow(t){return`<div class="row">${t.img?`<img src="${t.img}" alt="Struk">`:''}<div class="grow" onclick="edit(${t.id})" style="cursor:pointer"><b>${esc(t.note||t.cat)}</b><span class="mute">${t.cat}${t.d!==today()?' · '+t.d:''}</span></div><b class="out">${rp(t.amt)}</b><button class="x" onclick="del(${t.id})" aria-label="Hapus">×</button></div>`}
 function del(id){if(!confirm('Hapus transaksi ini?'))return;S.tx=S.tx.filter(t=>t.id!==id);save();render()}
 
 function home(){
@@ -32,23 +32,24 @@ function home(){
  return`<h1>Hari ini</h1><p class="mute">${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}</p>
  ${late?`<div class="banner">${summaryText()}</div>`:''}
  <div class="card"><span class="mute">Pengeluaran hari ini</span><div class="big out">${rp(s.total)}</div></div>
- <div class="card">${l.length?l.map(txRow).join(''):'<span class="mute">Belum ada transaksi. Tap Tambah, lalu foto struk atau ketik jumlahnya.</span>'}</div>`}
+ ${budgetCard()}${weekChart()}<div class="card">${l.length?l.map(txRow).join(''):'<span class="mute">Belum ada transaksi. Tap Tambah, lalu foto struk atau ketik jumlahnya.</span>'}</div>`}
 
 function add(){
- return`<h1>Tambah pengeluaran</h1>
+ return`<h1>${draft.editId?'Ubah':'Tambah'} pengeluaran</h1>
  <label class="scan" for="f">📷 Foto struk (kamera atau galeri)</label>
  <input id="f" type="file" accept="image/*" capture="environment" class="hide" onchange="scan(this.files[0])">
  ${draft.img?`<img id="prev" src="${draft.img}" alt="Struk">`:''}
  <p class="mute" id="ocr">${ocrMsg}</p>
- <label>Jumlah (Rp)</label><input id="a" type="number" inputmode="numeric" value="${draft.amt}" oninput="draft.amt=this.value">
+ <label>Jumlah (Rp)</label><input id="a" type="number" inputmode="numeric" value="${draft.amt}" oninput="draft.amt=this.value;document.getElementById('pv').textContent=this.value?rp(this.value):''"><div class="mute" id="pv" style="margin:-6px 0 8px">${draft.amt?rp(draft.amt):''}</div>
  <label>Kategori</label><select id="c" onchange="draft.cat=this.value">${Object.keys(CATS).map(c=>`<option ${c===draft.cat?'selected':''}>${c}</option>`).join('')}</select>
  <label>Catatan</label><input id="n" value="${esc(draft.note)}" oninput="draft.note=this.value" placeholder="mis. makan siang">
  <label>Tanggal</label><input id="d" type="date" value="${draft.d||today()}" onchange="draft.d=this.value">
- <button class="b" onclick="addTx()">Simpan pengeluaran</button>`}
+ <button class="b" onclick="addTx()">${draft.editId?'Simpan perubahan':'Simpan pengeluaran'}</button>${draft.editId?'<button class="b alt" onclick="cancelEdit()">Batal</button>':''}`}
 
 function addTx(){
  const amt=+draft.amt;if(!amt||amt<=0)return alert('Isi jumlah pengeluaran.');
- S.tx.push({id:Date.now(),d:draft.d||today(),amt,cat:draft.cat,note:draft.note.trim(),img:draft.img});
+ const row={id:draft.editId||Date.now(),d:draft.d||today(),amt,cat:draft.cat,note:draft.note.trim(),img:draft.img};
+ if(draft.editId)S.tx=S.tx.map(t=>t.id===draft.editId?row:t);else S.tx.push(row);
  save();draft={img:null,amt:'',note:'',cat:'Makan'};ocrMsg='';go('home')}
 
 function shrink(file){return new Promise(res=>{const im=new Image(),u=URL.createObjectURL(file);
@@ -73,12 +74,26 @@ function nums(line){return(line.match(/\d[\d.,]*\d|\d/g)||[]).map(x=>{
  if(/^\d{1,3}([.,]\d{3})+$/.test(x))return+x.replace(/[.,]/g,'');
  return+x.replace(/[.,]\d{1,2}$/,'').replace(/[.,]/g,'')}).filter(n=>n>=500&&n<1e8)}
 function parseReceipt(text){
- const L=text.split('\n').map(s=>s.trim()).filter(Boolean);let best=0;
- L.forEach(l=>{if(/total|jumlah|tagihan|grand|bayar|tunai|cash/i.test(l)&&!/kembali|change/i.test(l))nums(l).forEach(n=>{if(n>best)best=n})});
- if(!best)L.forEach(l=>nums(l).forEach(n=>{if(n>best)best=n}));
+ const L=text.split('\n').map(s=>s.trim()).filter(Boolean);
+ const mx=re=>{let b=0;L.forEach(l=>{if(re(l))nums(l).forEach(n=>{if(n>b)b=n})});return b};
+ let amt=mx(l=>/total|jumlah|tagihan|grand|netto/i.test(l)&&!/item|qty|diskon|hemat|ppn|pajak|kembali|change|barang/i.test(l));
+ if(!amt){const pay=mx(l=>/bayar|tunai|cash|debit|kartu|qris/i.test(l)&&!/kembali|change/i.test(l)),ch=mx(l=>/kembali|change/i.test(l));
+  amt=pay&&ch&&pay>ch?pay-ch:pay}
+ if(!amt)amt=mx(()=>true);
  let cat='Lainnya';for(const[k,re]of Object.entries(CATS))if(re.test(text)){cat=k;break}
  const note=(L.find(l=>/[a-z]{3}/i.test(l))||'').slice(0,40);
- return{amt:best,cat,note}}
+ return{amt,cat,note}}
+function edit(id){const t=S.tx.find(x=>x.id===id);if(!t)return;draft={...t,amt:String(t.amt),editId:id};ocrMsg='';go('add')}
+function cancelEdit(){draft={img:null,amt:'',note:'',cat:'Makan'};go('home')}
+function monthOut(m){return S.tx.filter(t=>t.d.startsWith(m)).reduce((a,t)=>a+t.amt,0)}
+function budgetCard(){const b=+S.set.budget;if(!b)return'';const o=monthOut(today().slice(0,7)),p=Math.min(100,o/b*100);
+ return`<div class="card"><div class="row" style="border:0;padding:0"><span class="mute">Anggaran bulan ini</span><b>${rp(o)} / ${rp(b)}</b></div><div class="bar"><i style="width:${p}%;background:${o>b?'var(--out)':p>80?'#c98a1b':'var(--acc)'}"></i></div><span class="mute">${o>b?'Lewat '+rp(o-b):'Sisa '+rp(b-o)}</span></div>`}
+function weekChart(){const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
+ const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');days.push([d.toLocaleDateString('id-ID',{weekday:'short'}),sumDay(k).total])}
+ const m=Math.max(...days.map(x=>x[1]),1);
+ return`<div class="card"><span class="mute">7 hari terakhir</span><div style="display:flex;gap:6px;align-items:flex-end;height:90px;margin-top:8px">${days.map(([l,v])=>`<div style="flex:1;text-align:center"><div style="height:${v/m*64}px;min-height:2px;background:var(--out);border-radius:4px"></div><div class="mute" style="font-size:11px">${l}</div></div>`).join('')}</div></div>`}
+let deferred=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;if(tab==='set')render()});
+async function installApp(){if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;render()}
 
 function month(){
  const m=viewMonth,tx=S.tx.filter(t=>t.d.startsWith(m)),out=tx.reduce((a,t)=>a+t.amt,0),
@@ -100,7 +115,8 @@ function delInc(id){S.inc=S.inc.filter(i=>i.id!==id);save();render()}
 
 function set(){
  const p='Notification' in window?Notification.permission:'tidak didukung';
- return`<h1>Pengaturan</h1>
+ return`<h1>Pengaturan</h1>${deferred?'<button class="b" onclick="installApp()">Instal aplikasi</button>':''}
+ <h2>Anggaran</h2><div class="card"><label>Anggaran pengeluaran per bulan (Rp)</label><input type="number" inputmode="numeric" value="${S.set.budget||''}" onchange="S.set.budget=+this.value||0;save()"></div>
  <h2>Notifikasi malam</h2><div class="card">
  <label>Jam notifikasi</label><input type="time" value="${S.set.time}" onchange="S.set.time=this.value;save()">
  <p class="mute">Izin notifikasi: <b>${p}</b></p>
@@ -110,7 +126,8 @@ function set(){
  <h2>Data</h2><div class="card">
  <button class="b alt" onclick="exportJson()">Ekspor cadangan (JSON)</button>
  <button class="b alt" onclick="exportCsv()">Ekspor CSV untuk Excel</button>
- <label>Impor cadangan</label><input type="file" accept=".json" onchange="importJson(this.files[0])"></div>`}
+ <label>Impor cadangan</label><input type="file" accept=".json" onchange="importJson(this.files[0])"></div>
+ <p class="mute" style="text-align:center"><a href="privacy.html" style="color:var(--acc)">Kebijakan privasi</a></p>`}
 async function askNotif(){if(!('Notification' in window))return alert('Browser ini tidak mendukung notifikasi.');await Notification.requestPermission();bgSync();render()}
 function notify(force){
  const msg=summaryText();
@@ -136,6 +153,7 @@ async function init(){
  if(['home','add','month','set'].includes(t))tab=t;
  render();
  if(q.get('scan')==='1')setTimeout(()=>{const f=document.getElementById('f');if(f)f.click()},300);
+ if(q.get('shared')==='1'&&window.caches){try{const c=await caches.open('share'),r=await c.match('shared-receipt');if(r){await c.delete('shared-receipt');scan(await r.blob())}}catch(e){}}
  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(()=>{if(Notification.permission==='granted')bgSync()}).catch(()=>{})}
 }

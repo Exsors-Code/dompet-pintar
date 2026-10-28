@@ -1,0 +1,6 @@
+*.keystore
+*.jks
+signing-key-info.txt
+*.aab
+*.apk
+node_modules/

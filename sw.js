@@ -1,11 +1,15 @@
 importScripts('db.js');
-const V='catatuang-v2';
-const FILES=['./','index.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','screenshots/narrow.png','screenshots/wide.png',
+const V='catatuang-v3';
+const FILES=['./','index.html','privacy.html','style.css','app.js','db.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','screenshots/narrow.png','screenshots/wide.png',
 'lib/tesseract.min.js','lib/worker.min.js','lib/tesseract-core-simd-lstm.wasm.js','lib/tesseract-core-lstm.wasm.js',
 'lib/lang/ind.traineddata.gz','lib/lang/eng.traineddata.gz'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);
+ if(e.request.method==='POST'&&u.pathname.endsWith('/share-receipt')){
+  e.respondWith((async()=>{try{const f=(await e.request.formData()).get('receipt');if(f)await (await caches.open('share')).put('shared-receipt',new Response(f))}catch(x){}
+   return Response.redirect(new URL('./?tab=add&shared=1',self.registration.scope).href,303)})());return}
+ if(e.request.method!=='GET')return;
  e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(r=>r||fetch(e.request)))});
 const rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
 const ymd=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};

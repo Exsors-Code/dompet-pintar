@@ -32,6 +32,12 @@ Buka https://www.pwabuilder.com, masukkan alamat GitHub Pages-mu, lalu pilih pak
 - **Screenshot di dialog instal:** `screenshots/narrow.png` dan `wide.png` adalah ilustrasi dengan data contoh. Ganti dengan tangkapan layar asli sebelum dipublikasikan.
 - **IARC rating:** `iarc_rating_id` sengaja tidak diisi. Kodenya harus dari kuesioner IARC (gratis, lewat Google Play Console). Isi di `manifest.webmanifest` kalau mau terbit di Play Store.
 
+## Terbit ke Play Store
+1. Hosting harus di domain root (mis. `USERNAME.github.io`) agar `/.well-known/assetlinks.json` bisa diakses. Repo project di `/NAMA-REPO/` tidak cukup.
+2. Jangan commit `signing.keystore` atau `signing-key-info.txt` ke GitHub (sudah ada di `.gitignore`).
+3. Pakai Play App Signing, lalu tambahkan sidik jari SHA-256 dari Play Console ke `assetlinks.json`.
+4. Isi `iarc_rating_id` dan alamat kebijakan privasi (`privacy.html`) di Play Console.
+
 ## Batasan
 - Notifikasi saat aplikasi tertutup memakai Periodic Background Sync. Hanya Chrome/Edge yang mendukung, aplikasi harus sudah terinstal, dan Chrome yang menentukan jam pengecekan, jadi bisa telat. iOS Safari tidak mendukungnya.
 - Data tidak tersinkron antar perangkat. Pakai ekspor/impor JSON untuk memindahkan data.
